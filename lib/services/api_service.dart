@@ -4,7 +4,7 @@ import 'dio_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static Future<String?> login(String code) async {
+  static Future<Map<String, dynamic>?> login(String code) async {
     try {
       final response = await DioClient.instance.post(
         '/api/Auth/token',
@@ -17,11 +17,13 @@ class ApiService {
       // Lưu token
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', token);
-
-      return token;
+      // return object including token and name claim from token
+      return {
+        'token': token,
+        'name': response.data['name'],
+      };
     } on DioException catch (e) {
       print('Login error: ${e.response?.data ?? e.message}');
       return null;
     }
-  }
-}
+  }}

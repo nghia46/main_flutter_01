@@ -1,5 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_application_learn/screens/attendance_screen.dart';
+import 'package:flutter_application_learn/screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() {
@@ -18,7 +20,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      initialRoute: '/',
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/attendance': (context) => const AttendanceScreen(),
+      },
     );
   }
 }
