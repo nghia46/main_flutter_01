@@ -11,19 +11,21 @@ class ApiService {
         data: {'code': code},
       );
 
-      // API trả về token trong trường "data"
-      final String token = response.data['data'];
+      // API trả về: { "data": { "token": "...", "username": "..." } }
+      final data = response.data['data'];
+      final String token = data['token'];
+      final String username = data['username'];
 
-      // Lưu token
+      // Lưu vào SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', token);
-      // return object including token and name claim from token
-      return {
-        'token': token,
-        'name': response.data['name'],
-      };
+      await prefs.setString('username', username);
+      await prefs.setString('code', code);
+
+      return {'token': token, 'username': username};
     } on DioException catch (e) {
       print('Login error: ${e.response?.data ?? e.message}');
       return null;
     }
-  }}
+  }
+}
