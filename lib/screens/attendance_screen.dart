@@ -217,7 +217,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: .7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -272,12 +272,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(cameraWidth),
                                       border: Border.all(
-                                        color: Colors.white.withOpacity(0.95),
+                                        color: Colors.white.withValues(alpha: .95),
                                         width: 3.0,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.white.withOpacity(0.3),
+                                          color: Colors.white.withValues(alpha: .3),
                                           blurRadius: 20,
                                           spreadRadius: 6,
                                         ),
@@ -310,7 +310,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           color: _isCapturing ? Colors.grey : Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withValues(alpha: .35),
                               blurRadius: 15,
                               offset: const Offset(0, 6),
                             ),

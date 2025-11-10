@@ -73,41 +73,30 @@ class _PreviewScreenState extends State<PreviewScreen>
       if (original == null) throw Exception("Không đọc được ảnh");
 
       final rect = face.boundingBox;
-      final centerX = rect.left + rect.width / 2;
-      final centerY = rect.top + rect.height / 2;
 
-      // padding 0.4–0.6 là hợp lý, tuỳ bạn điều chỉnh
+      // CROP CĂN GIỮA HOÀN HẢO
+      final centerX = rect.center.dx;
+      final centerY = rect.center.dy;
       const padding = 0.6;
 
-      // mở rộng khung theo padding
-      final newWidth = rect.width * (1 + padding);
-      final newHeight = rect.height * (1 + padding);
+      final newWidth = (rect.width * (1 + padding)).toDouble();
+      final newHeight = (rect.height * (1 + padding)).toDouble();
 
-      final left = (centerX - newWidth / 2)
-          .clamp(0, original.width - 1)
-          .toInt();
-      final top = (centerY - newHeight / 2)
-          .clamp(0, original.height - 1)
-          .toInt();
-      final right = (centerX + newWidth / 2)
-          .clamp(0, original.width - 1)
-          .toInt();
-      final bottom = (centerY + newHeight / 2)
-          .clamp(0, original.height - 1)
-          .toInt();
+      final left = (centerX - newWidth / 2).clamp(
+        0.0,
+        original.width - newWidth,
+      );
+      final top = (centerY - newHeight / 2).clamp(
+        0.0,
+        original.height - newHeight,
+      );
 
-      final cropWidth = (right - left).clamp(1, original.width - left).toInt();
-      final cropHeight = (bottom - top).clamp(1, original.height - top).toInt();
-
-      final flipped = img.flipHorizontal(original);
-
-      // thực hiện crop ảnh
       final cropped = img.copyCrop(
-        flipped,
-        x: left,
-        y: top,
-        width: cropWidth,
-        height: cropHeight,
+        original,
+        x: left.toInt(),
+        y: top.toInt(),
+        width: newWidth.toInt(),
+        height: newHeight.toInt(),
       );
 
       final dir = await getTemporaryDirectory();
