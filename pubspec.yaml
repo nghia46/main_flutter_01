@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^2.1.5
   image: ^4.5.4
   another_flushbar: ^1.12.32
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

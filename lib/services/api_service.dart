@@ -1,5 +1,4 @@
 // lib/services/api_service.dart
-import 'dart:nativewrappers/_internal/vm/lib/internal_patch.dart';
 import 'package:dio/dio.dart';
 import 'dio_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,7 +24,7 @@ class ApiService {
 
       return {'token': token, 'username': username};
     } on DioException catch (e) {
-      printToConsole('Login error: ${e.response?.data ?? e.message}');
+      print('Login error: ${e.response?.data ?? e.message}');
       return null;
     }
   }
