@@ -7,7 +7,7 @@ import 'package:flutter_application_learn/services/face_recognition_service.dart
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
-import 'package:geolocator/geolocator.dart'; // THÊM
+import 'package:geolocator/geolocator.dart';
 
 class PreviewScreen extends StatefulWidget {
   final String imagePath;
@@ -110,7 +110,6 @@ class _PreviewScreenState extends State<PreviewScreen>
     }
   }
 
-  // HÀM MỚI: LẤY VỊ TRÍ + GỌI API
   Future<void> _confirmAndUpload() async {
     if (_croppedFace == null || _isUploading) return;
     setState(() => _isUploading = true);
@@ -144,7 +143,7 @@ class _PreviewScreenState extends State<PreviewScreen>
         timeLimit: const Duration(seconds: 10),
       );
 
-      // 3. GỌI API VỚI ẢNH + VỊ TRÍ (code tự động từ prefs)
+      // 3. GỌI API VỚI ẢNH + VỊ TRÍ
       final result = await FaceRecognitionService.recognizeFace(
         imagePath: _croppedFace!.path,
         longitude: position.longitude,
@@ -157,17 +156,34 @@ class _PreviewScreenState extends State<PreviewScreen>
       }
 
       // 4. XỬ LÝ KẾT QUẢ
-      final recognized = result['recognized'] as bool? ?? false;
-      final name = result['name'] as String? ?? 'Unknown';
-      final confidence = (result['confidence'] as num?)?.toDouble() ?? 0.0;
-      final location = result['location'] as Map<String, dynamic>?;
+      final success = result['success'] as bool? ?? false;
+      final message = result['message'] as String? ?? 'Không có thông báo';
+      final statusCode = result['statusCode'] as int? ?? 0;
 
-      if (!recognized) {
-        _showFlushbar("Không nhận diện được ($confidence%)", Colors.redAccent, icon: Icons.error_outline);
+      // Nếu không thành công (success = false)
+      if (!success) {
+        _showFlushbar(message, Colors.orange, icon: Icons.warning_amber_rounded);
         return;
       }
 
-      // 5. HIỂN THỊ THÀNH CÔNG + VỊ TRÍ
+      // Nếu thành công, lấy thông tin data
+      final data = result['data'] as Map<String, dynamic>?;
+      if (data == null) {
+        _showFlushbar(message, Colors.green, icon: Icons.check_circle);
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) Navigator.pop(context, true);
+        return;
+      }
+
+      final name = data['fullname'] as String? ?? 'Unknown';
+      final confidence = (data['confidence'] as num?)?.toDouble() ?? 0.0;
+      final longitude = (data['longitude'] as num?)?.toDouble() ?? 0.0;
+      final latitude = (data['latitude'] as num?)?.toDouble() ?? 0.0;
+      final time = data['time'] as String? ?? '';
+
+      // 5. HIỂN THỊ THÀNH CÔNG
+      if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Column(
@@ -178,17 +194,32 @@ class _PreviewScreenState extends State<PreviewScreen>
                 children: [
                   const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
-                  Text(
-                    'Chấm công: $name',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    ),
                   ),
                 ],
               ),
-              Text('${confidence.toStringAsFixed(1)}%'),
-              if (location != null)
+              const SizedBox(height: 8),
+              Text(
+                'Nhân viên: $name',
+                style: const TextStyle(fontSize: 14),
+              ),
+              Text(
+                'Độ chính xác: ${confidence.toStringAsFixed(1)}%',
+                style: const TextStyle(fontSize: 13),
+              ),
+              if (time.isNotEmpty)
                 Text(
-                  'Vị trí: ${location['lat']}, ${location['long']}',
-                  style: const TextStyle(fontSize: 12),
+                  'Thời gian: $time',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              if (latitude != 0 && longitude != 0)
+                Text(
+                  'Vị trí: ${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
             ],
           ),
@@ -199,14 +230,15 @@ class _PreviewScreenState extends State<PreviewScreen>
         ),
       );
 
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) Navigator.pop(context, true);
     } on LocationServiceDisabledException {
       _showFlushbar("GPS bị tắt!", Colors.orange);
     } on PermissionDeniedException {
       _showFlushbar("Cần cấp quyền vị trí!", Colors.red);
     } catch (e) {
-      _showFlushbar("Lỗi: $e", Colors.red);
+      debugPrint('Lỗi upload: $e');
+      _showFlushbar("Lỗi: ${e.toString()}", Colors.red);
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }

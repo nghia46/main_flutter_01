@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 
 class DioClient {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'https://b4445e409b77.ngrok-free.app', // ← API thật
+    baseUrl: 'https://38dd9217b7c0.ngrok-free.app', // ← API thật
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
     headers: {

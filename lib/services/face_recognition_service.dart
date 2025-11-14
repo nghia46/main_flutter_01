@@ -19,28 +19,27 @@ class FaceRecognitionService {
 
       final dio = Dio();
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(imagePath, filename: 'face.jpg'),
+        'photo': await MultipartFile.fromFile(imagePath, filename: 'face.jpg'),
         'code': code,
         'longitude': longitude.toStringAsFixed(8),
         'latitude': latitude.toStringAsFixed(8),
       });
 
       final response = await dio.post(
-        'https://8877e915d6fa.ngrok-free.app/recognize',
+        'https://38dd9217b7c0.ngrok-free.app/api/CheckIn/checkin',
         data: formData,
         options: Options(
           headers: {'Content-Type': 'multipart/form-data'},
           receiveTimeout: const Duration(seconds: 25),
           sendTimeout: const Duration(seconds: 15),
+          validateStatus: (status) {
+            return true; // nhận tất cả status, không throw error
+          },
         ),
       );
-
-      if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>;
-      }
-      return null;
+      return response.data;
     } on DioException catch (e) {
-      print("API Error: ${e.response?.data ?? e.message}");
+      print("API Error: ${e}");
       return null;
     } catch (e) {
       print("Unexpected error: $e");
