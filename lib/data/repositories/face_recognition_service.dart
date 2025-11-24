@@ -1,19 +1,22 @@
 // services/face_recognition_service.dart
 import 'package:dio/dio.dart';
-import 'package:flutter_application_learn/ultils/pref_utils.dart';
+import 'package:flutter_application_learn/core/constants/api_constants.dart';
+import 'package:flutter_application_learn/core/storage/userdata_storage.dart';
 
 class FaceRecognitionService {
+
   static Future<Map<String, dynamic>?> recognizeFace({
     required String imagePath,
     required double longitude,
     required double latitude,
   }) async {
     try {
-      // LẤY CODE TỪ PREFS
-      final code = await PrefUtils.getCode();
+      final UserDataStorage userDataStorage = UserDataStorage();
 
-      if (code.isEmpty) {
-        print("Lỗi: Chưa lưu mã nhân viên!");
+      // LẤY CODE TỪ data storage
+      final code = await userDataStorage.getCode();
+
+      if (code!.isEmpty) {
         return null;
       }
 
@@ -25,8 +28,7 @@ class FaceRecognitionService {
         'latitude': latitude.toStringAsFixed(8),
       });
 
-      final response = await dio.post(
-        'https://38dd9217b7c0.ngrok-free.app/api/CheckIn/checkin',
+      final response = await dio.post("${ApiConstants.baseUrl}/CheckIn/checkin",
         data: formData,
         options: Options(
           headers: {'Content-Type': 'multipart/form-data'},
@@ -39,7 +41,7 @@ class FaceRecognitionService {
       );
       return response.data;
     } on DioException catch (e) {
-      print("API Error: ${e}");
+      print("API Error: $e");
       return null;
     } catch (e) {
       print("Unexpected error: $e");

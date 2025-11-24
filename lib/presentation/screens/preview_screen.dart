@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_learn/services/face_recognition_service.dart';
+import 'package:flutter_application_learn/data/repositories/face_recognition_service.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -59,7 +59,10 @@ class _PreviewScreenState extends State<PreviewScreen>
       if (!mounted) return;
 
       if (faces.isEmpty) {
-        _showFlushbar("Không phát hiện khuôn mặt. Vui lòng chụp lại!", Colors.orange);
+        _showFlushbar(
+          "Không phát hiện khuôn mặt. Vui lòng chụp lại!",
+          Colors.orange,
+        );
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) Navigator.pop(context);
         return;
@@ -78,8 +81,14 @@ class _PreviewScreenState extends State<PreviewScreen>
       final newWidth = (rect.width * (1 + padding)).toDouble();
       final newHeight = (rect.height * (1 + padding)).toDouble();
 
-      final left = (centerX - newWidth / 2).clamp(0.0, original.width - newWidth);
-      final top = (centerY - newHeight / 2).clamp(0.0, original.height - newHeight);
+      final left = (centerX - newWidth / 2).clamp(
+        0.0,
+        original.width - newWidth,
+      );
+      final top = (centerY - newHeight / 2).clamp(
+        0.0,
+        original.height - newHeight,
+      );
 
       final cropped = img.copyCrop(
         original,
@@ -90,7 +99,8 @@ class _PreviewScreenState extends State<PreviewScreen>
       );
 
       final dir = await getTemporaryDirectory();
-      final path = '${dir.path}/cropped_face_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final path =
+          '${dir.path}/cropped_face_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final file = File(path);
       await file.writeAsBytes(img.encodeJpg(cropped, quality: 94));
 
@@ -136,11 +146,14 @@ class _PreviewScreenState extends State<PreviewScreen>
         _showFlushbar("Quyền vị trí bị từ chối vĩnh viễn.", Colors.red);
         return;
       }
-
+      // Cấu hình LocationSettings
+      final settings = LocationSettings(
+        accuracy: LocationAccuracy.best, // tương đương desiredAccuracy
+        timeLimit: const Duration(seconds: 10), // thời gian tối đa chờ
+      );
       // 2. LẤY VỊ TRÍ
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+        locationSettings: settings,
       );
 
       // 3. GỌI API VỚI ẢNH + VỊ TRÍ
@@ -158,11 +171,14 @@ class _PreviewScreenState extends State<PreviewScreen>
       // 4. XỬ LÝ KẾT QUẢ
       final success = result['success'] as bool? ?? false;
       final message = result['message'] as String? ?? 'Không có thông báo';
-      final statusCode = result['statusCode'] as int? ?? 0;
 
       // Nếu không thành công (success = false)
       if (!success) {
-        _showFlushbar(message, Colors.orange, icon: Icons.warning_amber_rounded);
+        _showFlushbar(
+          message,
+          Colors.orange,
+          icon: Icons.warning_amber_rounded,
+        );
         return;
       }
 
@@ -183,7 +199,7 @@ class _PreviewScreenState extends State<PreviewScreen>
 
       // 5. HIỂN THỊ THÀNH CÔNG
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Column(
@@ -192,30 +208,31 @@ class _PreviewScreenState extends State<PreviewScreen>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       message,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                'Nhân viên: $name',
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text('Nhân viên: $name', style: const TextStyle(fontSize: 14)),
               Text(
                 'Độ chính xác: ${confidence.toStringAsFixed(1)}%',
                 style: const TextStyle(fontSize: 13),
               ),
               if (time.isNotEmpty)
-                Text(
-                  'Thời gian: $time',
-                  style: const TextStyle(fontSize: 13),
-                ),
+                Text('Thời gian: $time', style: const TextStyle(fontSize: 13)),
               if (latitude != 0 && longitude != 0)
                 Text(
                   'Vị trí: ${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
@@ -225,8 +242,10 @@ class _PreviewScreenState extends State<PreviewScreen>
           ),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 10),
         ),
       );
 
@@ -296,7 +315,10 @@ class _PreviewScreenState extends State<PreviewScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                    CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
                     SizedBox(height: 16),
                     Text(
                       'Đang xử lý khuôn mặt...',
@@ -337,7 +359,10 @@ class _PreviewScreenState extends State<PreviewScreen>
                   const SizedBox(height: 24),
                   if (_croppedFace != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green.shade700.withOpacity(0.85),
                         borderRadius: BorderRadius.circular(20),
@@ -345,7 +370,11 @@ class _PreviewScreenState extends State<PreviewScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.face_retouching_natural, color: Colors.white, size: 18),
+                          const Icon(
+                            Icons.face_retouching_natural,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Khuôn mặt đã được phát hiện',
@@ -371,7 +400,9 @@ class _PreviewScreenState extends State<PreviewScreen>
                               foregroundColor: Colors.white,
                               side: const BorderSide(color: Colors.white54),
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                             ),
                           ),
                         ),
@@ -383,14 +414,21 @@ class _PreviewScreenState extends State<PreviewScreen>
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Icon(Icons.check_circle_rounded),
-                            label: Text(_isUploading ? 'Đang gửi...' : 'Xác nhận'),
+                            label: Text(
+                              _isUploading ? 'Đang gửi...' : 'Xác nhận',
+                            ),
                             style: FilledButton.styleFrom(
                               backgroundColor: theme.colorScheme.primary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 3,
                             ),
                           ),

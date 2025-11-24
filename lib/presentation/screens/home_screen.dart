@@ -1,7 +1,7 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_application_learn/ultils/pref_utils.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_application_learn/core/storage/token_storage.dart';
+import 'package:flutter_application_learn/core/storage/userdata_storage.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +11,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TokenStorage tokenStorage = TokenStorage();
+  final UserDataStorage userDataStorage = UserDataStorage();
   String _username = "Đang tải...";
   String _code = "Đang tải...";
 
@@ -21,19 +23,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final username = await PrefUtils.getUsername();
-    final code = await PrefUtils.getCode();
+    final username = await userDataStorage.getName();
+    final code = await userDataStorage.getCode();
     if (mounted) {
       setState(() {
-        _username = username;
-        _code = code;
+        _username = username!;
+        _code = code!;
       });
     }
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    await tokenStorage.deleteTokens();
+    await userDataStorage.deleteCode();
+    await userDataStorage.deleteName();
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/login');
     }
@@ -89,7 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Avatar tròn với icon
                       CircleAvatar(
                         radius: 40,
-                        backgroundColor: theme.colorScheme.primary.withValues(alpha: .2),
+                        backgroundColor: theme.colorScheme.primary.withValues(
+                          alpha: .2,
+                        ),
                         child: Icon(
                           Icons.person_rounded,
                           size: 48,
@@ -113,9 +118,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: .15),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: .15,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -149,7 +159,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 2,
-                    shadowColor: theme.colorScheme.primary.withValues(alpha: .3),
+                    shadowColor: theme.colorScheme.primary.withValues(
+                      alpha: .3,
+                    ),
                   ),
                 ),
               ),
